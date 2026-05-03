@@ -15,6 +15,8 @@ def simpson(func, a, b, n = 2048) -> float:
 
 	h = (b - a) / n
 
+	# print(f'{h=}')
+
 	res = 0
 	for i in range(1, n, 2):
 		res += func(a + (i - 1) * h) + 4 * func(a + i * h) + func(a + (i + 1) * h)
@@ -72,13 +74,32 @@ def gauss(func, a, b, n = 8) -> float:
 	return res
 
 
+def check_presicion(fn, integrated_fn, a, b, method):
+	k = 2
+	for i in range(5):
+		n = k * (1 << i)
+		first = abs(integrated_fn(b) - integrated_fn(a) - method(fn, a, b, n=n))
+		second = abs(integrated_fn(b) - integrated_fn(a) - method(fn, a, b, n=n*2))
+
+		# print(first / second)
+		print(math.log2(first / second))
+
+
 def main():
-	print(simpson(fn1, 0.0001, .999, n = 65536))
-	print(simpson(fn2, 0.0001, .999, n = 65536))
-	print(gauss(fn2, 0, 1, n = 12))
-	print(gauss(fn1, 0, 1, n = 5))
+	# print(simpson(fn1, 0.0000001, .999999, n = 65536))
+	# print(gauss(fn1, 0, 1, n = 5))
+	# print('===========')
+	# print(simpson(fn2, 0.0000001, .999999, n = 65536))
+	# print(gauss(fn2, 0, 1, n = 12))
+
+	check_presicion(math.cos, math.sin, 0, math.pi / 2, simpson)
+	print('===========')
+	check_presicion(math.cos, math.sin, 0, math.pi / 2, gauss)
+	# check_presicion(lambda x: 2 * x, lambda x: x**2, 0, math.pi, simpson)
+	# check_presicion(lambda x: 2 * x, lambda x: x**2, 0, math.pi, gauss)
 
 	# print(get_gauss_values(-1, 1, 3, 4))
+	# precision 2n-1
 
 
 if __name__ == '__main__':
