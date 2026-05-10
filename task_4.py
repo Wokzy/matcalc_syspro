@@ -61,25 +61,28 @@ def get_gauss_values(a, b, i, n):
 
 	return xi, ci
 
-def gauss(func, a, b, n = 8) -> float:
+def gauss(func, a, b, n=2048, N = 8) -> float:
 	assert b > a
 
 	res = 0
 
-	for i in range(1, n + 1):
-		xi, ci = get_gauss_values(a, b, i, n)
-		# print(func(xi))
-		res += ci * func(xi)
+	h = (b - a) / n
+
+	for k in range(1, n):
+		for i in range(1, N + 1):
+			xi, ci = get_gauss_values(a + h * (k - 1), a + h * k, i, N)
+			# print(func(xi))
+			res += ci * func(xi)
 
 	return res
 
 
-def check_presicion(fn, integrated_fn, a, b, method):
+def check_presicion(fn, integrated_fn, a, b, method, **kwargs):
 	k = 2
 	for i in range(5):
 		n = k * (1 << i)
-		first = abs(integrated_fn(b) - integrated_fn(a) - method(fn, a, b, n=n))
-		second = abs(integrated_fn(b) - integrated_fn(a) - method(fn, a, b, n=n*2))
+		first = abs(integrated_fn(b) - integrated_fn(a) - method(fn, a, b, n=n, **kwargs))
+		second = abs(integrated_fn(b) - integrated_fn(a) - method(fn, a, b, n=n*2, **kwargs))
 
 		# print(first / second)
 		print(math.log2(first / second))
@@ -90,11 +93,11 @@ def main():
 	# print(gauss(fn1, 0, 1, n = 5))
 	# print('===========')
 	# print(simpson(fn2, 0.0000001, .999999, n = 65536))
-	# print(gauss(fn2, 0, 1, n = 12))
+	# print(gauss(fn2, 0, 1, n = 256))
 
 	check_presicion(math.cos, math.sin, 0, math.pi / 2, simpson)
 	print('===========')
-	check_presicion(math.cos, math.sin, 0, math.pi / 2, gauss)
+	check_presicion(math.cos, math.sin, 0, math.pi / 2, gauss, N=4)
 	# check_presicion(lambda x: 2 * x, lambda x: x**2, 0, math.pi, simpson)
 	# check_presicion(lambda x: 2 * x, lambda x: x**2, 0, math.pi, gauss)
 
