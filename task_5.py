@@ -25,7 +25,7 @@ def simple_iterations(
             return x
 
         x = (1 - correction_coeff) * leftside_func(x) - correction_coeff * x
-        print(leftside_func(x) - x)
+        # print(leftside_func(x) - x)
 
     return x
 
@@ -44,7 +44,7 @@ def jacobian(f, y0):
 
     return J
 
-def newtons(f, jac, x, precision=1e-9, num_iters=16):
+def newtons(f, jac, x, precision=1e-9, num_iters=128):
     for _ in range(num_iters):
         G = f(x)
         J = jac(x)
@@ -53,7 +53,7 @@ def newtons(f, jac, x, precision=1e-9, num_iters=16):
     return x
 
 
-def implicit_euler(f, t0, t1, y0, n_steps):
+def implicit_euler(f, t0, t1, y0, n_steps, A = None):
     """
     y_n+1 = y_n + h * f(t_n+1, y_n+1)
 
@@ -68,10 +68,14 @@ def implicit_euler(f, t0, t1, y0, n_steps):
     for i in range(n_steps):
         y_next = y[i].copy()
 
-        fn = lambda _y: _y - y[i] - h * f(t[i + 1], _y)
-        jac = lambda _y: np.eye(n) - h * jacobian(fn, _y)
+        if A is not None:
+            # (I - h*A)*y_n+1 = yn - явное выражение при A const
+            y[i + 1] =  np.linalg.inv(np.eye(n) - h * A) @ y[i]
+        else:
+            fn = lambda _y: _y - y[i] - h * f(t[i + 1], _y)
+            jac = lambda _y: np.eye(n) - h * jacobian(fn, _y)
 
-        y[i + 1] = newtons(fn, jac, y_next)
+            y[i + 1] = newtons(fn, jac, y_next)
 
         # y[i + 1] = simple_iterations(
         #     leftside_func=lambda _y: y[i] + h * f(t[i + 1], _y),
@@ -155,15 +159,18 @@ def first():
 
 def second():
     t0, t1 = (0.0, 1.0)
-    y0 = np.array([998.0, 123.0])
+    y0 = np.array([1.0, -2.0])
 
-    n_steps = 10
+    n_steps = 20
 
     def f(t, y):
         return np.array([998 * y[0] + 1998 * y[1], -999 * y[0] - 1999 * y[1]])
 
+    A = np.array([[998.0, 1998.0], [-998.0, -1999]])
     _, y_exp = explicit_euler(f, t0, t1, y0, n_steps)
-    _, y_imp = implicit_euler(f, t0, t1, y0, n_steps)
+    _, y_imp = implicit_euler(f, t0, t1, y0, n_steps, A=A)
+
+    # print(np.linalg.eig(A))
 
     print(y_exp)
     print("===========")
@@ -176,16 +183,28 @@ def third(t0, t1, y0, n_steps = 10, line='-'):
         return np.array([a * y[0] - b * y[0] * y[1],
                          c * y[0] * y[1] - d * y[1]])
 
-    _, y_rk4 = rk4(f, t0, t1, y0, n_steps)
+    t_rk4, y_rk4 = rk4(f, t0, t1, y0, n_steps)
+
+    A = np.array([[a, -b], [c, -d]])
 
     # print(y_rk4)
     plt.plot(y_rk4.T[0], y_rk4.T[1], line, label=f'{t0=}, {t1=}, {y0=}')
 
+    # for i in range(n_steps):
+    #     print(np.linalg.eig(f(t_rk4[i], y_rk4[i])))
+
+    # print(y_rk4)
+    # print(f(t_rk4, y_rk4))
+    # print(f(t_rk4, y_rk4))
+
 
 if __name__ == "__main__":
-    first()
-    # second()
-    # third(0, 1, np.array([1.0, 3.0]), n_steps=25)
-    # third(0, 3, np.array([1.0, 3.0]), n_steps=25)
+    # first()
+    second()
+    # third(0, 1, np.array([1.0, 1.0]), n_steps=100)
+    # third(0, 1, np.array([2.0, 2.0]), n_steps=100)
+    # third(0, 1, np.array([3.0, 3.0]), n_steps=100)
+    # third(0, 1, np.array([4.0, 4.0]), n_steps=100)
+    # third(0, 1, np.array([4.95, 4.95]), n_steps=100)
     # plt.legend()
     # plt.show()
