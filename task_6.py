@@ -33,8 +33,13 @@ def solution_1(t0, t1, f, conditions: np.ndarray, der_cond: tuple[bool] = (False
     """
     Решение ур-я: y'' = f(t)
 
-    der_con = False: y(t0), y(t1) = conditions
-    der_con = True: y'(t0), y'(t1) = conditions
+
+    der_cond: 
+    A = 0, B = 1
+    A = 1, B = 0
+
+    A' = 0, B' = 1
+    A' = 1, B' = 0
     """
 
     h = (t1 - t0) / n_steps
